@@ -260,17 +260,16 @@ if(MINGW)
     message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 endif(MINGW)
 
+set(SDL2_PATH "C:/Users/sonneveld/Documents/SDL2-2.0.8" )
+
 if(MSVC)
     set(COMPILER_MSVC 1)
-    set(ALLEGRO_MSVC 1)
+    set(ALLEGRO_SDL2_MSVC 1)
+    set(ALLEGRO_SDL2 1)
     set(WFLAGS "/W3 -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE")
 endif(MSVC)
 
-if(WIN32)
-    set(ALLEGRO_WINDOWS 1)
-endif()
-
-if(APPLE OR UNIX)
+if(APPLE OR UNIX OR WIN32)
     set(ALLEGRO_SDL2 1)
 endif()
 
@@ -387,10 +386,17 @@ if(ALLEGRO_MACOSX)
 endif(ALLEGRO_MACOSX)
 
 if(ALLEGRO_SDL2)
-    list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_SDL2_FILES})
 
-   pkg_check_modules(SDL2 REQUIRED sdl2)
-   include_directories(${SDL2_INCLUDE_DIRS})
+    if(ALLEGRO_SDL2_MSVC)
+        list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_SDL2_MSVC_FILES})
+    else()
+        list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_SDL2_FILES})
+    endif()
+
+	find_package(SDL2 REQUIRED)
+	if (SDL2_FOUND)
+		include_directories(${SDL2_INCLUDE_DIR})
+	endif()
 
 endif(ALLEGRO_SDL2)
 
@@ -511,8 +517,9 @@ if(NOT WANT_FRAMEWORKS)
     install_our_headers(${ALLEGRO_PUBLIC_HEADERS})
 endif(NOT WANT_FRAMEWORKS)
 
-
-target_link_libraries(allegro ${SDL2_LIBRARIES})
+if (SDL2_FOUND)
+    target_link_libraries(allegro ${SDL2_LIBRARY})
+endif()
 
 
 #-----------------------------------------------------------------------------#
